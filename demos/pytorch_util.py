@@ -104,6 +104,11 @@ def randn(*args, torch_device=None, **kwargs):
         torch_device = device
     return torch.randn(*args, **kwargs, device=torch_device)
 
+def rand(*args, torch_device=None, **kwargs):
+    if torch_device is None:
+        torch_device = device
+    return torch.rand(*args, **kwargs, device=torch_device)
+
 def zeros_like(*args, torch_device=None, **kwargs):
     if torch_device is None:
         torch_device = device

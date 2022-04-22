@@ -1,4 +1,6 @@
 from MixtureCDFFlow import *
+
+
 # applies gradient steps for each mini-batch in an epoch
 def train(model, train_loader, optimizer):
     model.train()
@@ -63,8 +65,8 @@ train_loader, test_loader = load_flow_demo_1(n_train, n_test,
             loader_args, visualize=True, train_only=False)
 
 
-cdf_flow_model = MixtureCDFFlow(base_dist='uniform', mixture_dist='gaussian',
-                    n_components=5).to(ptu.device)
+cdf_flow_model = MixtureCDFFlow(n_xsize = 100,  base_dist='uniform', mixture_dist='gaussian',
+                    n_components=5, is_slow = True).to(ptu.device)
 cdf_flow_model_old = copy.deepcopy(cdf_flow_model)
 train_epochs(cdf_flow_model, train_loader, test_loader, 
                       dict(epochs=50, lr=5e-3, epochs_to_plot=[0,5,8,11,49]))
