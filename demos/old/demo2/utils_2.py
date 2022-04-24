@@ -4,7 +4,7 @@ from scipy.stats import norm
 import torch.utils.data as data
 import torch
 
-NN = 3000
+NN = 1000
 
 class NumpyDataset(data.Dataset):
 
@@ -27,6 +27,17 @@ def generate_1d_flow_data(n):
     gaussian1 = np.random.normal(loc=-1, scale=0.25, size=(n//2,))
     gaussian2 = np.random.normal(loc=0.5, scale=0.5, size=(n//2,))
     return np.concatenate([gaussian1, gaussian2])
+
+def load_flow_demo_0(n, visualize = False):
+    x = np.random.uniform(size=n)
+    y = np.random.normal(loc=0, scale=1, size=n)
+    train_data = np.concatenate([x.reshape(n, 1), y.reshape(n, 1)], axis=1)
+
+    if visualize:
+        plt.figure()
+        plt.scatter(x, y, marker='o', alpha=0.1)
+        plt.show()
+    return train_data
 
 
 def load_flow_demo_1(n_train, n_test, loader_args, visualize=True, train_only=False):
