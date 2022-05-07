@@ -2,6 +2,6 @@
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
 
-cd demos
+cd Rare-Events/demos
 python test.py
 
