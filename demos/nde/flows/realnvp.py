@@ -34,7 +34,7 @@ class SimpleRealNVP(flows.Flow):
         else:
             coupling_constructor = transforms.AffineCouplingTransform
 
-        coupling_constructor = transforms.PiecewiseRationalQuadraticCouplingTransform
+        # coupling_constructor = transforms.PiecewiseRationalQuadraticCouplingTransform
 
         mask = torch.ones(features)
         mask[::2] = -1
