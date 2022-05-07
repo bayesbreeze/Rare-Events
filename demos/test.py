@@ -15,33 +15,6 @@ import utils
 torch.set_default_tensor_type(torch.FloatTensor)
 
 
-def survey_sample(n, centre, rho = 1):
-    # x = np.random.randn(n) * rho  + centre
-    x = np.random.uniform(size=n, low =c1 - 3, high=c2 + 3)
-    y = np.random.uniform(size=n, low =0, high=1)
-    return torch.FloatTensor(np.concatenate([x.reshape(n, 1), y.reshape(n, 1)], axis=1))
-
-def calLoss(inputs, log_prob):
-    return - (f(inputs)  / log_prob.exp() * log_prob).mean()
-
-def filterInputs(inputs):
-    return inputs[((inputs[:,0]>xlimits[0]) * (inputs[:,0]<xlimits[1]))
-                  * ((inputs[:,1]>ylimits[0]) * (inputs[:,1]<ylimits[1]))]
-
-def filterInputs_logj(inputs, logj):
-    mask = ((inputs[:,0]>xlimits[0]) * (inputs[:,0]<xlimits[1])) \
-           * ((inputs[:,1]>ylimits[0]) * (inputs[:,1]<ylimits[1]))
-    return inputs[mask], logj[mask]
-
-def plotHistory(history, level=10):
-    history = np.array(history)
-    idx =  np.where(history > level)[0][-1]
-    history =  history[idx+1:]
-    plt.plot(history)
-    plt.show()
-
-
-
 flow = realnvp.SimpleRealNVP(
     features=2,
     hidden_features=20,
@@ -65,6 +38,19 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("==run on=> ", device)
 flow.to(device)
 
+
+
+
+# def calLoss(inputs, log_prob):
+#     return - (f(inputs)  / log_prob.exp() * log_prob).mean()
+# def filterInputs_logj(inputs, logj):
+#     mask = ((inputs[:,0]>xlimits[0]) * (inputs[:,0]<xlimits[1])) \
+#            * ((inputs[:,1]>ylimits[0]) * (inputs[:,1]<ylimits[1]))
+#     return inputs[mask], logj[mask]
+
+
+
+
 myNorm = Normal(torch.tensor([centre]), torch.tensor([1.0]))
 def logf(x):
     return myNorm.log_prob(x[:,0])  + torch.log(x[:,0]>level)\
@@ -75,14 +61,31 @@ def survey_sample(n, centre, rho = 1):
     y = np.random.uniform(size=n, low =0, high=1)
     return torch.FloatTensor(np.concatenate([x.reshape(n, 1), y.reshape(n, 1)], axis=1)).to(device)
 
+# def survey_sample(n, b1, b2):
+#     # x = np.random.randn(n) * rho  + centre
+#     x = np.random.uniform(size=n, low =b1, high=b2)
+#     y = np.random.uniform(size=n, low =0, high=1)
+#     return torch.FloatTensor(np.concatenate([x.reshape(n, 1), y.reshape(n, 1)], axis=1))
+
+def filterInputs(inputs):
+    return inputs[((inputs[:,0]>xlimits[0]) * (inputs[:,0]<xlimits[1]))
+                  * ((inputs[:,1]>ylimits[0]) * (inputs[:,1]<ylimits[1]))]
+
 def calLoss(inputs, log_prob):
     return - ((logf(inputs) - log_prob).exp() * log_prob).mean()
 
+def plotHistory(history, level=10):
+    history = np.array(history)
+    idx =  np.where(history > level)[0][-1]
+    history =  history[idx+1:]
+    plt.plot(history)
+    plt.show()
+
 optimizer_servy = optim.Adam(flow.parameters(), lr=1e-2)
 history = []
-for epoch in range(200): #tqdm.notebook.tqdm(, desc='Survey', leave=False):
+for epoch in range(100): #tqdm.notebook.tqdm(, desc='Survey', leave=False):
     with torch.no_grad():
-        inputs = survey_sample(1000, 0)
+        inputs = survey_sample(1000, 1, 5)
         inputs  = filterInputs(inputs)
         # print(inputs.shape)
     log_prob = flow.log_prob(inputs)
@@ -96,7 +99,8 @@ for epoch in range(200): #tqdm.notebook.tqdm(, desc='Survey', leave=False):
 
 print("===>", inputs[:,0].mean(), loss.item())
 optimizer_refine = optim.Adam(flow.parameters(), lr=5e-4)
-for epoch in range(1000): #tqdm.notebook.tqdm(, desc='Refine', leave=False):
+for epoch in range(300): #tqdm.notebook.tqdm(, desc='Refine', leave=False):
+    print(epoch)
     with torch.no_grad():
         inputs = flow.sample(800).detach()
         inputs  = filterInputs(inputs)
@@ -118,7 +122,7 @@ import matplotlib.pyplot as plt
 
 with torch.no_grad():
     x, loggx = flow.sample_and_log_prob(10000)
-    x, loggx = filterInputs_logj(x, loggx)
+    # x, loggx = filterInputs_logj(x, loggx)
     # print(x.shape)
     s0, s1 = x[:,0], x[:,1]
 
