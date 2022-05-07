@@ -15,19 +15,19 @@ import utils
 torch.set_default_tensor_type(torch.FloatTensor)
 
 
-flow = realnvp.SimpleRealNVP(
-    features=2,
-    hidden_features=20,
-    num_layers=8,
-    num_blocks_per_layer=2,
-)
+# flow = realnvp.SimpleRealNVP(
+#     features=2,
+#     hidden_features=20,
+#     num_layers=8,
+#     num_blocks_per_layer=2,
+# )
 
-# flow = ar.MaskedAutoregressiveFlow(
-#             features=2,
-#             hidden_features=20,
-#             num_layers=8,
-#             num_blocks_per_layer=2,
-#         )
+flow = ar.MaskedAutoregressiveFlow(
+            features=2,
+            hidden_features=20,
+            num_layers=8,
+            num_blocks_per_layer=2,
+        )
 
 centre = 0.0
 level = 10

@@ -30,26 +30,13 @@ flow = realnvp.SimpleRealNVP(
 #         )
 
 centre = 0.0
-level = 0
-xlimits = [-5, 5]
+level = 3
+xlimits = [2, 10]
 ylimits = [0, 1]
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("==run on=> ", device)
 flow.to(device)
-
-
-
-
-# def calLoss(inputs, log_prob):
-#     return - (f(inputs)  / log_prob.exp() * log_prob).mean()
-# def filterInputs_logj(inputs, logj):
-#     mask = ((inputs[:,0]>xlimits[0]) * (inputs[:,0]<xlimits[1])) \
-#            * ((inputs[:,1]>ylimits[0]) * (inputs[:,1]<ylimits[1]))
-#     return inputs[mask], logj[mask]
-
-
-
 
 myNorm = Normal(torch.tensor([centre]), torch.tensor([1.0]))
 def logf(x):
@@ -60,12 +47,6 @@ def survey_sample(n, centre, rho = 1):
     x = np.random.randn(n) * rho  + centre
     y = np.random.uniform(size=n, low =0, high=1)
     return torch.FloatTensor(np.concatenate([x.reshape(n, 1), y.reshape(n, 1)], axis=1)).to(device)
-
-# def survey_sample(n, b1, b2):
-#     # x = np.random.randn(n) * rho  + centre
-#     x = np.random.uniform(size=n, low =b1, high=b2)
-#     y = np.random.uniform(size=n, low =0, high=1)
-#     return torch.FloatTensor(np.concatenate([x.reshape(n, 1), y.reshape(n, 1)], axis=1))
 
 def filterInputs(inputs):
     return inputs[((inputs[:,0]>xlimits[0]) * (inputs[:,0]<xlimits[1]))
@@ -85,7 +66,7 @@ optimizer_servy = optim.Adam(flow.parameters(), lr=1e-2)
 history = []
 for epoch in range(100): #tqdm.notebook.tqdm(, desc='Survey', leave=False):
     with torch.no_grad():
-        inputs = survey_sample(1000, 1, 5)
+        inputs = survey_sample(1000, 3, 5)
         inputs  = filterInputs(inputs)
         # print(inputs.shape)
     log_prob = flow.log_prob(inputs)
@@ -99,13 +80,13 @@ for epoch in range(100): #tqdm.notebook.tqdm(, desc='Survey', leave=False):
 
 print("===>", inputs[:,0].mean(), loss.item())
 optimizer_refine = optim.Adam(flow.parameters(), lr=5e-4)
-for epoch in range(300): #tqdm.notebook.tqdm(, desc='Refine', leave=False):
-    print(epoch)
+for epoch in range(2000): #tqdm.notebook.tqdm(, desc='Refine', leave=False):
+    # print(epoch)
     with torch.no_grad():
-        inputs = flow.sample(800).detach()
+        inputs = flow.sample(1000).detach()
         inputs  = filterInputs(inputs)
 
-        if(epoch % 100 == 99):
+        if(epoch % 50 == 49):
             print(inputs[:,0].mean(), loss.item())
     log_prob = flow.log_prob(inputs)
     optimizer_refine.zero_grad()
@@ -116,7 +97,7 @@ for epoch in range(300): #tqdm.notebook.tqdm(, desc='Refine', leave=False):
     optimizer_refine.step()
     history.append(loss.item())
 
-plotHistory(history, 5)
+# plotHistory(history, 1)
 
 import matplotlib.pyplot as plt
 
@@ -128,7 +109,7 @@ with torch.no_grad():
 
     intgral = torch.exp(logf(x) - loggx).mean()
 
-    print("==integral=>", intgral)
+    print("==integral=> %.10f" % intgral)
     plt.figure(figsize=(10,5))
     plt.subplot(121)
     plt.scatter(s0, s1, marker='o', alpha=0.1)
@@ -136,6 +117,6 @@ with torch.no_grad():
 
     plt.title("2d")
     plt.subplot(122)
-    plt.hist((s0).detach().numpy(), bins=100,  range=(-5,  5), density=True) #, range=(0,  200)
+    plt.hist((s0).detach().numpy(), bins=100,  range=(0,  10), density=True) #, range=(0,  200)
     plt.title('1d')
     plt.show()
