@@ -1,8 +1,5 @@
 import torch
 import numpy as np
-import matplotlib.pyplot as plt
-from scipy.stats import norm
-
 from torch.distributions.normal import Normal
 import torch.optim as optim
 import torch.nn as nn
@@ -10,17 +7,14 @@ from nde.flows import realnvp
 import tqdm
 import matplotlib.pyplot as plt
 from nde.flows import autoregressive as ar
-import utils
 
 
-
-
-# flow = realnvp.SimpleRealNVP(
-#     features=2,
-#     hidden_features=20,
-#     num_layers=8,
-#     num_blocks_per_layer=2,
-# )
+flow = realnvp.SimpleRealNVP(
+    features=2,
+    hidden_features=20,
+    num_layers=8,
+    num_blocks_per_layer=2,
+)
 
 flow = ar.MaskedAutoregressiveFlow(
             features=2,
@@ -103,22 +97,30 @@ for epoch in range(2000): #tqdm.notebook.tqdm(, desc='Refine', leave=False):
 
 import matplotlib.pyplot as plt
 
-with torch.no_grad():
-    x, loggx = flow.sample_and_log_prob(20000)
-    # x, loggx = filterInputs_logj(x, loggx)
-    # print(x.shape)
-    s0, s1 = x[:,0], x[:,1]
+def calIntegral(print=False):
+    with torch.no_grad():
+        x, loggx = flow.sample_and_log_prob(10000)
+        # x, loggx = filterInputs_logj(x, loggx)
+        # print(x.shape)
+        s0, s1 = x[:,0], x[:,1]
 
-    intgral = torch.exp(logf(x) - loggx).mean()
+        intgral = torch.exp(logf(x) - loggx).mean()
 
-    print("==integral=> %.10f" % intgral)
-    plt.figure(figsize=(10,5))
-    plt.subplot(121)
-    plt.scatter(s0, s1, marker='o', alpha=0.002)
-    plt.plot(0, 0, 'rp', markersize=5)
+        if(print):
+            print("==integral=> %.10f" % intgral)
+            # plt.figure(figsize=(10,5))
+            # plt.subplot(121)
+            # plt.scatter(s0, s1, marker='o', alpha=0.002)
+            # plt.plot(0, 0, 'rp', markersize=5)
 
-    plt.title("2d")
-    plt.subplot(122)
-    plt.hist((s0).detach().numpy(), bins=100,  range=(0,  20), density=True) #, range=(0,  200)
-    plt.title('1d')
-    plt.show()
+            plt.title("2d")
+            plt.subplot(122)
+            plt.hist((s0).detach().numpy(), bins=100,  range=(0,  20), density=True) #, range=(0,  200)
+            plt.title('1d')
+            plt.show()
+        return intgral
+
+v = [calIntegral() for i in range(100)]
+real = 0.0013499
+print("mean: %.10f, std: %.10f, accuracy: %.3f%%" % (np.mean(v), np.std(v),
+                                              (1-np.abs(np.mean(v) - real)/real)*100))

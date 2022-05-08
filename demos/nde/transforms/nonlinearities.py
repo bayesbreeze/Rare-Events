@@ -111,7 +111,8 @@ class Sigmoid(transforms.Transform):
     def __init__(self, temperature=1, eps=1e-6):
         super().__init__()
         self.eps = eps
-        self.temperature = torch.Tensor([temperature])
+        # self.temperature = torch.Tensor([temperature])
+        self.temperature = nn.Parameter(torch.Tensor([temperature]), requires_grad=True)
 
     def forward(self, inputs, context=None):
         inputs = self.temperature * inputs
