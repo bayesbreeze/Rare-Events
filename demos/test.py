@@ -12,31 +12,33 @@ import matplotlib.pyplot as plt
 from nde.flows import autoregressive as ar
 import utils
 
-torch.set_default_tensor_type(torch.FloatTensor)
 
 
-flow = realnvp.SimpleRealNVP(
-    features=2,
-    hidden_features=20,
-    num_layers=8,
-    num_blocks_per_layer=2,
-)
 
-# flow = ar.MaskedAutoregressiveFlow(
-#             features=2,
-#             hidden_features=20,
-#             num_layers=8,
-#             num_blocks_per_layer=2,
-#         )
+# flow = realnvp.SimpleRealNVP(
+#     features=2,
+#     hidden_features=20,
+#     num_layers=8,
+#     num_blocks_per_layer=2,
+# )
+
+flow = ar.MaskedAutoregressiveFlow(
+            features=2,
+            hidden_features=20,
+            num_layers=8,
+            num_blocks_per_layer=2,
+        )
 
 centre = 0.0
 level = 3
-xlimits = [2, 10]
+xlimits = [3, 20]
 ylimits = [0, 1]
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
+if torch.cuda.is_available():
+    torch.set_default_tensor_type(torch.cuda.FloatTensor)
+    device = torch.device("cuda:0")
 print("==run on=> ", device)
-flow.to(device)
 
 myNorm = Normal(torch.tensor([centre]), torch.tensor([1.0]))
 def logf(x):
@@ -102,7 +104,7 @@ for epoch in range(2000): #tqdm.notebook.tqdm(, desc='Refine', leave=False):
 import matplotlib.pyplot as plt
 
 with torch.no_grad():
-    x, loggx = flow.sample_and_log_prob(10000)
+    x, loggx = flow.sample_and_log_prob(20000)
     # x, loggx = filterInputs_logj(x, loggx)
     # print(x.shape)
     s0, s1 = x[:,0], x[:,1]
@@ -112,11 +114,11 @@ with torch.no_grad():
     print("==integral=> %.10f" % intgral)
     plt.figure(figsize=(10,5))
     plt.subplot(121)
-    plt.scatter(s0, s1, marker='o', alpha=0.1)
+    plt.scatter(s0, s1, marker='o', alpha=0.002)
     plt.plot(0, 0, 'rp', markersize=5)
 
     plt.title("2d")
     plt.subplot(122)
-    plt.hist((s0).detach().numpy(), bins=100,  range=(0,  10), density=True) #, range=(0,  200)
+    plt.hist((s0).detach().numpy(), bins=100,  range=(0,  20), density=True) #, range=(0,  200)
     plt.title('1d')
     plt.show()
