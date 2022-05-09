@@ -29,11 +29,13 @@ class MyFlow(flows.Flow):
             distribution=distributions.StandardNormal([1]),
         )
 flow = MyFlow()
+for param in flow.parameters():
+    param.requires_grad = True
 
 
 centre = 0.0
-level = 0
-xlimits = [0, 20]
+level = -20
+xlimits = [-20, 20]
 
 device = torch.device("cpu")
 if torch.cuda.is_available():
@@ -41,9 +43,14 @@ if torch.cuda.is_available():
     device = torch.device("cuda:0")
 print("==run on=> ", device)
 
-myNorm = Normal(torch.tensor([centre]), torch.tensor([1.0]))
+# myNorm = Normal(torch.tensor([centre]), torch.tensor([1.0]))
+# def logf(x):
+#     return myNorm.log_prob(x) + torch.log(x>=level)
+
+
 def logf(x):
-    return myNorm.log_prob(x) + torch.log(x>=level)
+    return -0.5 * x**2  + torch.log(x>level)
+
 
 def survey_sample(n, centre, rho = 1):
     x = np.random.randn(n) * rho + centre
@@ -89,7 +96,7 @@ for epoch in range(100): #tqdm.notebook.tqdm(, desc='Survey', leave=False):
 
 print("===>", inputs[:,0].mean(), loss.item())
 optimizer_refine = optim.Adam(flow.parameters(), lr=5e-4)
-for epoch in range(1000): #tqdm.notebook.tqdm(, desc='Refine', leave=False):
+for epoch in range(10000): #tqdm.notebook.tqdm(, desc='Refine', leave=False):
     if(torch.isnan(loss)):
         break;
     # print(epoch)

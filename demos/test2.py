@@ -29,10 +29,7 @@ centre = 0.0
 level = 10
 xlimits = [0, 30]
 ylimits = [0, 30]
-myNorm = Normal(torch.tensor([centre]), torch.tensor([1.0]))
-def logf(x):
-    return myNorm.log_prob(x[:,0])  + torch.log(x[:,0]>level)\
-             + torch.log(x[:,1]>0) + torch.log(x[:,1]<1)
+
 
 def logf(x):
       return -x[:, 0] -x[:, 1] + torch.log(x[:,0] + x[:,1] > level) \
@@ -96,8 +93,6 @@ for epoch in range(500): #tqdm.notebook.tqdm(, desc='Refine', leave=False):
     history.append(loss.item())
 
 # plotHistory(history, 5)
-
-
 
 def calIntegral(needprint=False):
     if torch.isnan(loss):

@@ -23,9 +23,10 @@ flow = ar.MaskedAutoregressiveFlow(
             num_blocks_per_layer=2,
         )
 
-centre = 0.0
+mu = centre = 0.0
+sigma = 1
 level = 3
-xlimits = [3, 20]
+xlimits = [0, 20]
 ylimits = [0, 1]
 
 device = torch.device("cpu")
@@ -35,6 +36,7 @@ if torch.cuda.is_available():
 print("==run on=> ", device)
 
 myNorm = Normal(torch.tensor([centre]), torch.tensor([1.0]))
+
 def logf(x):
     return myNorm.log_prob(x[:,0])  + torch.log(x[:,0]>level)\
              + torch.log(x[:,1]>0) + torch.log(x[:,1]<1)
@@ -76,7 +78,7 @@ for epoch in range(100): #tqdm.notebook.tqdm(, desc='Survey', leave=False):
 
 print("===>", inputs[:,0].mean(), loss.item())
 optimizer_refine = optim.Adam(flow.parameters(), lr=5e-4)
-for epoch in range(2000): #tqdm.notebook.tqdm(, desc='Refine', leave=False):
+for epoch in range(1000): #tqdm.notebook.tqdm(, desc='Refine', leave=False):
     # print(epoch)
     with torch.no_grad():
         inputs = flow.sample(1000).detach()
@@ -97,30 +99,30 @@ for epoch in range(2000): #tqdm.notebook.tqdm(, desc='Refine', leave=False):
 
 import matplotlib.pyplot as plt
 
-def calIntegral(print=False):
+def calIntegral(needprint=False):
     with torch.no_grad():
-        x, loggx = flow.sample_and_log_prob(10000)
+        x, loggx = flow.sample_and_log_prob(20000)
         # x, loggx = filterInputs_logj(x, loggx)
         # print(x.shape)
         s0, s1 = x[:,0], x[:,1]
 
         intgral = torch.exp(logf(x) - loggx).mean()
 
-        if(print):
+        if(needprint):
             print("==integral=> %.10f" % intgral)
-            # plt.figure(figsize=(10,5))
-            # plt.subplot(121)
-            # plt.scatter(s0, s1, marker='o', alpha=0.002)
-            # plt.plot(0, 0, 'rp', markersize=5)
+            plt.figure(figsize=(10,5))
+            plt.subplot(121)
+            plt.scatter(s0, s1, marker='o', alpha=0.002)
+            plt.plot(0, 0, 'rp', markersize=5)
 
             plt.title("2d")
             plt.subplot(122)
-            plt.hist((s0).detach().numpy(), bins=100,  range=(0,  20), density=True) #, range=(0,  200)
+            plt.hist((s0).detach().numpy(), bins=100,  range=(-20,  20), density=True) #, range=(0,  200)
             plt.title('1d')
             plt.show()
         return intgral
 
-v = [calIntegral() for i in range(100)]
+v = [calIntegral(i==1) for i in range(100)]
 real = 0.0013499
 print("mean: %.10f, std: %.10f, accuracy: %.3f%%" % (np.mean(v), np.std(v),
                                               (1-np.abs(np.mean(v) - real)/real)*100))
