@@ -12,6 +12,7 @@ import nn as nn_
 from nde.transforms import base, nonlinearities as nl, standard, linear as ll
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
+import tqdm.auto as tqdm
 
 class MyFlow(flows.Flow):
     def __init__(self):
@@ -96,7 +97,7 @@ for epoch in range(100): #tqdm.notebook.tqdm(, desc='Survey', leave=False):
 
 print("===>", inputs[:,0].mean(), loss.item())
 optimizer_refine = optim.Adam(flow.parameters(), lr=5e-4)
-for epoch in range(10000): #tqdm.notebook.tqdm(, desc='Refine', leave=False):
+for epoch in tqdm.trange(1000, desc='Refine', leave=False):
     if(torch.isnan(loss)):
         break;
     # print(epoch)

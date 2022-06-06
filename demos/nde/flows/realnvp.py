@@ -35,6 +35,7 @@ class SimpleRealNVP(flows.Flow):
             coupling_constructor = transforms.AffineCouplingTransform
 
         # coupling_constructor = transforms.PiecewiseRationalQuadraticCouplingTransform
+        # activation   = F.sigmoid()
         # transforms.CompositeTransform([
         #         transforms.Sigmoid(),
         #         ])

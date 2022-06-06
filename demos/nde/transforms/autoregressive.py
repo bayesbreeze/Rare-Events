@@ -91,7 +91,7 @@ class MaskedAffineAutoregressiveTransform(AutoregressiveTransform):
         logabsdet = -utils.sum_except_batch(log_scale, num_batch_dims=1)
         return outputs, logabsdet
 
-    def _unconstrained_scale_and_shift(self, autoregressive_params):
+    def _unconstrained_scale_and_shift(self, autoregressive_params: object) -> object:
         # split_idx = autoregressive_params.size(1) // 2
         # unconstrained_scale = autoregressive_params[..., :split_idx]
         # shift = autoregressive_params[..., split_idx:]

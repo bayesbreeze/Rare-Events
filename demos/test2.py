@@ -4,14 +4,17 @@ from torch.distributions.normal import Normal
 import torch.optim as optim
 from nde.flows import autoregressive as ar
 import matplotlib.pyplot as plt
+import tqdm.auto as tqdm
+from nde.flows import realnvp
 
-# flow = realnvp.SimpleRealNVP(
-#     features=2,
-#     hidden_features=20,
-#     num_layers=8,
-#     num_blocks_per_layer=2,
-# )
-#
+
+flow = realnvp.SimpleRealNVP(
+    features=2,
+    hidden_features=20,
+    num_layers=8,
+    num_blocks_per_layer=2,
+)
+
 flow = ar.MaskedAutoregressiveFlow(
             features=2,
             hidden_features=20,
@@ -57,7 +60,8 @@ def plotHistory(history, level=10):
 
 optimizer_servy = optim.Adam(flow.parameters(), lr=1e-2)
 history = []
-for epoch in range(100): #tqdm.notebook.tqdm(, desc='Survey', leave=False):
+
+for epoch in tqdm.trange(100, desc='Survey', leave=True):
     with torch.no_grad():
         inputs = survey_sample(1000, level + 0.2)
         # inputs = survey_sample(1000, 1, 5)
@@ -75,15 +79,15 @@ for epoch in range(100): #tqdm.notebook.tqdm(, desc='Survey', leave=False):
 
 print("===>", inputs[:,0].mean(), loss.item())
 optimizer_refine = optim.Adam(flow.parameters(), lr=5e-4)
-for epoch in range(500): #tqdm.notebook.tqdm(, desc='Refine', leave=False):
+for epoch in tqdm.trange(5000, desc='Refine', leave=True):
     if torch.isnan(loss):
         break
     # print(epoch)
     with torch.no_grad():
         inputs = flow.sample(1000).detach()
         inputs  = filterInputs(inputs)
-        if(epoch % 50 == 49):
-            print(inputs[:,0].mean(), loss.item())
+        # if(epoch % 500 == 499):
+        #     print(inputs[:,0].mean(), loss.item())
     log_prob = flow.log_prob(inputs)
     optimizer_refine.zero_grad()
     loss = calLoss(inputs, log_prob)

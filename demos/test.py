@@ -12,7 +12,7 @@ from nde.flows import autoregressive as ar
 flow = realnvp.SimpleRealNVP(
     features=2,
     hidden_features=20,
-    num_layers=8,
+    num_layers=2,
     num_blocks_per_layer=2,
 )
 
@@ -25,7 +25,7 @@ flow = ar.MaskedAutoregressiveFlow(
 
 mu = centre = 0.0
 sigma = 1
-level = 3
+level = 0
 xlimits = [0, 20]
 ylimits = [0, 1]
 
@@ -38,7 +38,7 @@ print("==run on=> ", device)
 myNorm = Normal(torch.tensor([centre]), torch.tensor([1.0]))
 
 def logf(x):
-    return myNorm.log_prob(x[:,0])  + torch.log(x[:,0]>level)\
+    return myNorm.log_prob(x[:,0]) + torch.log(x[:,0]>level)\
              + torch.log(x[:,1]>0) + torch.log(x[:,1]<1)
 
 def survey_sample(n, centre, rho = 1):
@@ -65,8 +65,9 @@ history = []
 for epoch in range(100): #tqdm.notebook.tqdm(, desc='Survey', leave=False):
     with torch.no_grad():
         inputs = survey_sample(1000, 3, 5)
-        inputs  = filterInputs(inputs)
+        inputs = filterInputs(inputs)
         # print(inputs.shape)
+    print(inputs.min(), inputs.max())
     log_prob = flow.log_prob(inputs)
     optimizer_servy.zero_grad()
     loss = calLoss(inputs, log_prob)
@@ -76,10 +77,11 @@ for epoch in range(100): #tqdm.notebook.tqdm(, desc='Survey', leave=False):
     optimizer_servy.step()
     history.append(loss.item())
 
-print("===>", inputs[:,0].mean(), loss.item())
+# print("===>", inputs[:,0].mean(), loss.item())
 optimizer_refine = optim.Adam(flow.parameters(), lr=5e-4)
 for epoch in range(1000): #tqdm.notebook.tqdm(, desc='Refine', leave=False):
     # print(epoch)
+    print("epoch:", epoch)
     with torch.no_grad():
         inputs = flow.sample(1000).detach()
         inputs  = filterInputs(inputs)
@@ -117,12 +119,13 @@ def calIntegral(needprint=False):
 
             plt.title("2d")
             plt.subplot(122)
-            plt.hist((s0).detach().numpy(), bins=100,  range=(-20,  20), density=True) #, range=(0,  200)
+            plt.hist((s0).detach().numpy(), bins=20,  range=(-2,  5), density=True) #, range=(0,  200)
             plt.title('1d')
             plt.show()
         return intgral
 
 v = [calIntegral(i==1) for i in range(100)]
-real = 0.0013499
+# real = 0.0013499
+real = 0.5
 print("mean: %.10f, std: %.10f, accuracy: %.3f%%" % (np.mean(v), np.std(v),
                                               (1-np.abs(np.mean(v) - real)/real)*100))
