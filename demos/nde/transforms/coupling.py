@@ -400,7 +400,7 @@ class PiecewiseRationalQuadraticCouplingTransform(PiecewiseCouplingTransform):
     def __init__(self, mask, transform_net_create_fn,
                  num_bins=10,
                  tails=None,
-                 tail_bound=5.,
+                 tail_bound=1.,
                  apply_unconditional_transform=False,
                  img_shape=None,
                  min_bin_width=splines.rational_quadratic.DEFAULT_MIN_BIN_WIDTH,

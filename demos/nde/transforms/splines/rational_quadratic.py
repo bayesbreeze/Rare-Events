@@ -56,7 +56,7 @@ def rational_quadratic_spline(inputs,
                               unnormalized_heights,
                               unnormalized_derivatives,
                               inverse=False,
-                              left=-5., right=5., bottom=-5., top=5.,
+                              left=0., right=1., bottom=0., top=1.,
                               min_bin_width=DEFAULT_MIN_BIN_WIDTH,
                               min_bin_height=DEFAULT_MIN_BIN_HEIGHT,
                               min_derivative=DEFAULT_MIN_DERIVATIVE):

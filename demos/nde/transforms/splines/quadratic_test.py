@@ -50,4 +50,3 @@ class UnconstrainedQuadraticSplineTest(torchtestcase.TorchTestCase):
         self.eps = 1e-4
         self.assertEqual(inputs, inputs_inv)
         self.assertEqual(logabsdet + logabsdet_inv, torch.zeros_like(logabsdet))
-

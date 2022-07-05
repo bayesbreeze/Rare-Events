@@ -34,12 +34,6 @@ class SimpleRealNVP(flows.Flow):
         else:
             coupling_constructor = transforms.AffineCouplingTransform
 
-        # coupling_constructor = transforms.PiecewiseRationalQuadraticCouplingTransform
-        # activation   = F.sigmoid()
-        # transforms.CompositeTransform([
-        #         transforms.Sigmoid(),
-        #         ])
-
         mask = torch.ones(features)
         mask[::2] = -1
 
@@ -55,7 +49,6 @@ class SimpleRealNVP(flows.Flow):
             )
 
         layers = []
-        # layers.append(transforms.Sigmoid())
         for _ in range(num_layers):
             transform = coupling_constructor(
                 mask=mask,
@@ -65,7 +58,7 @@ class SimpleRealNVP(flows.Flow):
             mask *= -1
             if batch_norm_between_layers:
                 layers.append(transforms.BatchNorm(features=features))
-        # layers.append(transforms.Logit())
+
         super().__init__(
             transform=transforms.CompositeTransform(layers),
             distribution=distributions.StandardNormal([features]),
