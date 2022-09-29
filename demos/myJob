@@ -1,7 +1,12 @@
 #!/bin/bash
-#SBATCH --partition=gpu
+#SBATCH --partition=p100
 #SBATCH --gres=gpu:1
 
-cd Rare-Events/demos
-python test.py
+export PATH=$PATH:"/bin/python3.9":"/bin/pip3.9"
+# alias python="python3.9"
+# alias pip="pip3.9"
+# echo $PATH
+
+cd ~
+python3.9 testDM.py
 

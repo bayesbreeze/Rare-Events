@@ -6,7 +6,6 @@ import unittest
 
 from nde.flows import realnvp
 
-
 class SimpleRealNVPTest(torchtestcase.TorchTestCase):
 
     def test_log_prob(self):

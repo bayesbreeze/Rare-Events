@@ -1,0 +1,6 @@
+{
+    // .. any other settings
+    "terminal.integrated.env.linux": {
+        "PYTHONPATH": "/Users/John/Documents/AustraliaStudy/Study/Research/project/demos/Rare-Events/demos/"
+      }
+}
