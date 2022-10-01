@@ -8,6 +8,17 @@ import utils
 from nde import distributions
 
 
+device = torch.device("cpu")
+if torch.cuda.is_available():
+    # torch.set_default_tensor_type(torch.cuda.FloatTensor)
+    device = torch.device("cuda:0")
+elif torch.backends.mps.is_available():
+    torch.set_default_tensor_type(torch.backends.mps.torch.FloatTensor)
+    device = torch.device("mps")
+print("==normal.py run on=> ", device)
+
+
+
 class StandardNormal(distributions.Distribution):
     """A multivariate Normal with zero mean and unit covariance."""
 
@@ -26,11 +37,11 @@ class StandardNormal(distributions.Distribution):
 
     def _sample(self, num_samples, context):
         if context is None:
-            return torch.randn(num_samples, *self._shape)
+            return torch.randn(num_samples, *self._shape).to(device)
         else:
             # The value of the context is ignored, only its size is taken into account.
             context_size = context.shape[0]
-            samples = torch.randn(context_size * num_samples, *self._shape)
+            samples = torch.randn(context_size * num_samples, *self._shape).to(device)
             return utils.split_leading_dim(samples, [context_size, num_samples])
 
     def _mean(self, context):

@@ -1,9 +1,7 @@
-#  exec(open('demo5.py').read())
+#exec(open('demo5.py').read())
 import numpy as np
 import matplotlib.pyplot as plt
 from statsmodels.datasets import co2
-import jax
-import jax.numpy as jnp
 
 from nde import distributions, flows, transforms
 import nn as nn_
@@ -88,8 +86,11 @@ def create_base_transform(i, _tail_bound):
 ## =================
 device = torch.device("cpu")
 if torch.cuda.is_available():
-    torch.set_default_tensor_type(torch.cuda.FloatTensor)
+    # torch.set_default_tensor_type(torch.cuda.FloatTensor)
     device = torch.device("cuda:0")
+elif torch.backends.mps.is_available():
+    torch.set_default_tensor_type(torch.backends.mps.torch.FloatTensor)
+    device = torch.device("mps")
 print("==run on=> ", device)
 
 import torch
@@ -145,7 +146,7 @@ distribution = distributions.StandardNormal((dim,))
 transform = transforms.CompositeTransform(
     [create_base_transform(i, 2) for i in range(num_flow_steps)])
 flow = flows.Flow(transform, distribution).to(device)
-
+next(flow.parameters()).device # check device
 ##==========
 
 optimizer_refine = optim.Adam(flow.parameters(), lr=5e-4)
@@ -153,10 +154,10 @@ scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer_refine, n_total_steps
 for epoch in range(n_total_steps): #tqdm.notebook.tqdm(, desc='Refine', leave=False):
     with torch.no_grad():
         _ = flow.eval()
-        inputs = flow.sample(2000).detach()
+        inputs = flow.sample(2000)
         # inputs  = filterInputs(inputs)
         if(epoch % 100 == 99):
-            print(epoch+1, inputs[:,0].mean(), loss.item())
+            print(epoch+1, inputs[:,0].mean().cpu(), loss.item().cpu())
 
     _ = flow.train()
     # scheduler.step(epoch)
@@ -170,20 +171,20 @@ for epoch in range(n_total_steps): #tqdm.notebook.tqdm(, desc='Refine', leave=Fa
     # history.append(loss.item())
 
 
-with torch.no_grad():
-    _ = flow.eval()
-    inputs = flow.sample(5000).detach()
+# with torch.no_grad():
+#     _ = flow.eval()
+#     inputs = flow.sample(5000).detach()
 
 
 import numpy as np
 import matplotlib.pyplot as plt
 
 num_bins = 15
-plt.hist(inputs.numpy(), num_bins, density=True)
+plt.hist(inputs.cpu().numpy(), num_bins, density=True)
 plt.show()
 
 num_bins = 20
-plt.hist(((inputs>0) * 2 - 1).sum(axis=-1).numpy(), num_bins, density=True)
+plt.hist(((inputs>0) * 2 - 1).sum(axis=-1).cpu().numpy(), num_bins, density=True)
 plt.show()
 
 

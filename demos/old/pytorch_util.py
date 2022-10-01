@@ -50,6 +50,7 @@ _gpu_id = 0
 
 
 def set_gpu_mode(mode, gpu_id=0):
+    print("=================set_gpu_mode============")
     global _use_gpu
     global device
     global _gpu_id
@@ -63,17 +64,20 @@ def gpu_enabled():
 
 
 def set_device(gpu_id):
+    print("=================set_device============")
     torch.cuda.set_device(gpu_id)
 
 
 # noinspection PyPep8Naming
 def FloatTensor(*args, torch_device=None, **kwargs):
+    print("=================FloatTensor============")
     if torch_device is None:
         torch_device = device
     return torch.FloatTensor(*args, **kwargs).to(torch_device)
 
 
 def from_numpy(*args, **kwargs):
+    print("=================from_numpy============")
     return torch.from_numpy(*args, **kwargs).float().to(device)
 
 
